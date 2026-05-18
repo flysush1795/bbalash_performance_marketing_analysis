@@ -8,7 +8,7 @@ I worked on a simulated digital marketing analytics work overview involving camp
 3. **Exploratory Data Analysis (EDA)**: Performed basic exploratory data analysis to understand the dataset.
 4. **Business Analysis**: Use SQL to answer specific business questions and derive insights from the sales data.
 
-5. ## Project Structure
+## Project Structure
 
 ### 1. Database Setup
 
