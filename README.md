@@ -25,7 +25,7 @@ use nykaa_marketcampperf;
 1. **Changing the date format**:
 2. 
 3. Created a new date column with date data type. 
-4. ```sql
+```sql
 alter table nykaa_campaign_data
 add new_date date;
 ```
