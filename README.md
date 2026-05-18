@@ -1,4 +1,4 @@
-# Performance Marketing Campaign Analysis
+# Performance Marketing Campaign Analysis: BBALash
 I worked on creating a simulated digital marketing analytics work overview involving campaign performance analysis across ecommerce beauty brand. I used SQL for KPI calculations, campaign analysis, funnel tracking, and platform performance evaluation
 
 ## Objectives
@@ -117,6 +117,8 @@ order by sum(revenue) desc limit 1;
 
 Conversion Efficency (CE) = conversions / leads * 100
 
+A high lead count with low conversions may indicate poor lead quality, weak landing pages, pricing issues, or audience mismatch.
+
 ```sql
 SELECT channel_used,
        SUM(leads) AS total_leads,
@@ -128,4 +130,169 @@ ORDER BY total_leads DESC,
          conversion_efficiency ASC;
 ```
 
+10. **Find campaigns where conversion rate is below average.**:
 
+```sql
+select campaign_id from nykaa_campaign_data
+where conversions < ( select avg(conversions) from nykaa_campaign_data);
+```
+
+11. **Find the campaigns where conversion rate is below average.**:
+
+```sql
+with conv_rate_calc as(
+select campaign_id, round(sum(conversions) / sum(clicks) * 100, 2) as conv_rate
+from nykaa_campaign_data
+where clicks > 0
+group by campaign_id )
+select campaign_id, conv_rate from conv_rate_calc
+where conv_rate < (select avg(conv_rate) from conv_rate_calc);
+```
+
+12. **Find the campaigns where conversion are below average**:
+
+```sql
+select campaign_id from nykaa_campaign_data
+where conversions < ( select avg(conversions) from nykaa_campaign_data);
+```
+
+13. **Find top-performing platform based on revenue per click.**:
+
+```sql
+with rev_clk_calc as (
+select channel_used, round(sum(revenue) / sum(clicks), 2) as rev_per_clk
+from nykaa_campaign_data
+group by channel_used)
+select channel_used 
+from rev_clk_calc 
+order by rev_per_clk desc limit 5;
+```
+
+14. **Rank campaigns based on revenue within each platform.**:
+```sql
+select campaign_id, revenue, channel_used,
+rank() over(partition by channel_used order by revenue desc) as camp_perf
+from nykaa_campaign_data;
+```
+
+15. **Find cumulative revenue generated over campaigns.**:
+
+```sql
+select campaign_id, new_date, revenue,                          
+sum(revenue) over (order by campaign_id) as cum_revenue    -- haven't use date in order by coz dates can be same
+from nykaa_campaign_data;
+```
+
+16. **Find previous campaign revenue.**:
+
+I used lag to compare current campaign performance with previous campaign perfromance to identify revenue drops & sudden spikes
+
+```sql
+select campaign_id, revenue, new_date,
+lag (revenue) over (order by campaign_id asc) as prev_rev 
+from nykaa_campaign_data;
+```
+
+17. **Identify underperforming campaigns i.e., High Impressions, Low Clicks, Low Conversions**:
+
+```sql
+select campaign_id, impressions, clicks, conversions
+from nykaa_campaign_data
+where impressions > 10000 and clicks < 5000 and conversions < 500;
+```
+
+18. **Which target audience responds best to influencer campaigns?**:
+
+```sql
+select campaign_type, target_audience, sum(conversions) as conversions
+from nykaa_campaign_data
+where campaign_type = "Influencer"
+group by target_audience
+order by conversions desc;
+```
+
+19. **Compare campaign efficiency across channels.**:
+
+```sql
+select channel_used, round(sum(conversions) / sum(clicks) * 100, 2) rate_of_conversions
+from nykaa_campaign_data
+group by channel_used
+order by rate_of_conversions desc;
+```
+
+20. **Find campaigns contributing to 80% of total revenue.**:
+
+```sql
+with revenue_cte as (
+select campaign_id, revenue,
+sum(revenue) over (order by revenue desc) as recurring_revenue,
+sum(revenue) over () as total_revenue
+from nykaa_campaign_data)
+select campaign_id
+from revenue_cte
+where recurring_revenue <= total_revenue * 0.80;
+```
+
+21. **Detect campaigns with abnormal click-through behavior.**:
+
+```sql
+select campaign_id, clicks, impressions,
+round(clicks / impressions * 100, 2) as ctr 
+from nykaa_campaign_data
+where (clicks / impressions * 100) > 50;
+```
+
+22. **Find top 3 campaigns from each platform.**:
+
+```sql
+with rank_cte as
+(select campaign_id, revenue, channel_used,
+dense_rank () over (partition by channel_used order by revenue desc) as  top_perf
+from nykaa_campaign_data)
+select campaign_id, revenue, channel_used, top_perf
+from rank_cte
+where top_perf <= 3;
+```
+
+23. **Find month-over-month revenue growth.**:
+
+Growth Rate = (Current Month Revenue - Previous Month Revenue) / Previous month Revenue * 100
+
+```sql
+with revenue_cte as (
+select month(new_date) as month_num, sum(revenue) as current_mnth_rev, monthname(new_date) as mnth_name
+from nykaa_campaign_data
+group by month(new_date), monthname(new_date)
+order by month(new_date))
+select  month_num, current_mnth_rev, mnth_name,
+lag(current_mnth_rev) over (order by month_num) as prev_mnth_rev,
+round((current_mnth_rev - lag(current_mnth_rev) over (order by month_num)) / lag(current_mnth_rev) over (order by month_num) * 100, 2) as mnth_grth_rate
+from revenue_cte;
+```
+
+24. **How would you identify duplicate campaigns**:
+
+```sql
+select campaign_id, count(*)
+from nykaa_campaign_data
+group by campaign_id 
+having count(*) > 1;
+```
+
+25. **Find campaigns where clicks exceeds impressions**: This is to check the data integrity issues because clicks can't be higher then impressions
+
+```sql
+select campaign_id 
+from nykaa_campaign_data
+where clicks > impressions;
+```
+
+26. **Build a customer funnel analysis using SQL**:
+
+```sql
+select sum(impressions) as total_impressions,
+sum(clicks) as total_clicks,
+sum(leads) as total_leads,
+sum(conversions) as total_conversions
+from nykaa_campaign_data;
+```
