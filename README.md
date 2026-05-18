@@ -1,5 +1,5 @@
 # Performance Marketing Campaign Analysis
-I worked on a simulated digital marketing analytics work overview involving campaign performance analysis across ecommerce beauty brand. I used SQL for KPI calculations, campaign analysis, funnel tracking, and platform performance evaluation
+I worked on creating a simulated digital marketing analytics work overview involving campaign performance analysis across ecommerce beauty brand. I used SQL for KPI calculations, campaign analysis, funnel tracking, and platform performance evaluation
 
 ## Objectives
 
