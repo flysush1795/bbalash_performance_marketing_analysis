@@ -95,6 +95,8 @@ group by campaign_id;
 7. **Find top 5 campaigns with highest conversion rate.**:
 
 Conversion Rate = (Conersions / Clicks) * 100
+Cost Per Aquistion (CPA) = Spend / Conversions
+Return on Investment (ROI) = (Revenue - Spend) / Spend * 100
 
 ```sql
 select campaign_id, round(conversions / clicks * 100, 2) as conversion_rate
@@ -102,4 +104,28 @@ from nykaa_campaign_data
 where clicks > 0                            -- This is taken for safety, coz anything divided by 0 is not definate                                   
 order by conversion_rate desc limit 5;
 ```
+
+8. **Find the most profitable campaign type.**:
+```sql
+select campaign_type, sum(revenue) 
+from nykaa_campaign_data
+group by campaign_type
+order by sum(revenue) desc limit 1;
+```
+
+9. **Which channel generated maximum leads but low conversions?**:
+
+Conversion Efficency (CE) = conversions / leads * 100
+
+```sql
+SELECT channel_used,
+       SUM(leads) AS total_leads,
+       SUM(conversions) AS total_conversions,
+       ROUND(SUM(conversions) * 100.0 / SUM(leads),2) AS conversion_efficiency
+FROM nykaa_campaign_data
+GROUP BY channel_used
+ORDER BY total_leads DESC,
+         conversion_efficiency ASC;
+```
+
 
